@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
         result.error.errors.forEach((e) => toast.error(e.message));
         return;
       }
-      mutation.mutate({ ...result.data, token });
+      mutation.mutate({ password: result.data.password, passwordConfirmation: result.data.passwordConfirmation, token });
     },
   });
 
