@@ -9,9 +9,10 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/auth/AuthProvider";
+import { AuthProvider } from "@/auth/AuthProvider";
 import { tokenStorage } from "@/auth/tokenStorage";
 import { AuthSkeleton, ProcessingSkeleton } from "@/components/AuthSkeleton";
+import { Analytics } from "@vercel/analytics/react";
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
@@ -32,6 +33,7 @@ const rootRoute = createRootRoute({
         <Sonner />
         <AuthProvider>
           <Outlet />
+          <Analytics />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
