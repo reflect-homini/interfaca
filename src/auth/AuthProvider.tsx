@@ -1,4 +1,11 @@
-import { createContext, useContext, useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMeApi, loginApi, logoutApi, type User } from "@/api/auth";
 import { tokenStorage } from "./tokenStorage";
@@ -15,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const queryClient = useQueryClient();
   const [ready, setReady] = useState(false);
 
@@ -40,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await loginApi(values);
       await refetch();
     },
-    [refetch]
+    [refetch],
   );
 
   const logout = useCallback(async () => {

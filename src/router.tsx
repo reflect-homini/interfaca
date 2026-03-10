@@ -15,7 +15,9 @@ import { AuthSkeleton, ProcessingSkeleton } from "@/components/AuthSkeleton";
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
-const VerifyRegistrationPage = lazy(() => import("@/pages/VerifyRegistrationPage"));
+const VerifyRegistrationPage = lazy(
+  () => import("@/pages/VerifyRegistrationPage"),
+);
 const OAuthCallbackPage = lazy(() => import("@/pages/OAuthCallbackPage"));
 const PasswordResetPage = lazy(() => import("@/pages/PasswordResetPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
@@ -84,7 +86,7 @@ const verifyRoute = createRoute({
 
 const oauthCallbackRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/oauth/callback",
+  path: "/auth/$provider/callback",
   component: () => (
     <Suspense fallback={<ProcessingSkeleton message="Authenticating" />}>
       <OAuthCallbackPage />
