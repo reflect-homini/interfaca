@@ -14,14 +14,14 @@ import { tokenStorage } from "@/auth/tokenStorage";
 import { AuthSkeleton, ProcessingSkeleton } from "@/components/AuthSkeleton";
 import { Analytics } from "@vercel/analytics/react";
 
+// const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+// const VerifyRegistrationPage = lazy(
+//   () => import("@/pages/VerifyRegistrationPage"),
+// );
+// const PasswordResetPage = lazy(() => import("@/pages/PasswordResetPage"));
+// const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
-const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
-const VerifyRegistrationPage = lazy(
-  () => import("@/pages/VerifyRegistrationPage"),
-);
 const OAuthCallbackPage = lazy(() => import("@/pages/OAuthCallbackPage"));
-const PasswordResetPage = lazy(() => import("@/pages/PasswordResetPage"));
-const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const AppPage = lazy(() => import("@/pages/AppPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -65,26 +65,26 @@ const loginRoute = createRoute({
   ),
 });
 
-const registerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/register",
-  beforeLoad: requireGuest,
-  component: () => (
-    <Suspense fallback={<AuthSkeleton />}>
-      <RegisterPage />
-    </Suspense>
-  ),
-});
+// const registerRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "/register",
+//   beforeLoad: requireGuest,
+//   component: () => (
+//     <Suspense fallback={<AuthSkeleton />}>
+//       <RegisterPage />
+//     </Suspense>
+//   ),
+// });
 
-const verifyRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/verify-registration",
-  component: () => (
-    <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
-      <VerifyRegistrationPage />
-    </Suspense>
-  ),
-});
+// const verifyRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "/verify-registration",
+//   component: () => (
+//     <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
+//       <VerifyRegistrationPage />
+//     </Suspense>
+//   ),
+// });
 
 const oauthCallbackRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -96,25 +96,25 @@ const oauthCallbackRoute = createRoute({
   ),
 });
 
-const passwordResetRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/password-reset",
-  component: () => (
-    <Suspense fallback={<AuthSkeleton />}>
-      <PasswordResetPage />
-    </Suspense>
-  ),
-});
+// const passwordResetRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "/password-reset",
+//   component: () => (
+//     <Suspense fallback={<AuthSkeleton />}>
+//       <PasswordResetPage />
+//     </Suspense>
+//   ),
+// });
 
-const resetPasswordRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/reset-password",
-  component: () => (
-    <Suspense fallback={<AuthSkeleton />}>
-      <ResetPasswordPage />
-    </Suspense>
-  ),
-});
+// const resetPasswordRoute = createRoute({
+//   getParentRoute: () => rootRoute,
+//   path: "/reset-password",
+//   component: () => (
+//     <Suspense fallback={<AuthSkeleton />}>
+//       <ResetPasswordPage />
+//     </Suspense>
+//   ),
+// });
 
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -146,13 +146,13 @@ const catchAllRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
+  // registerRoute,
+  // verifyRoute,
+  // passwordResetRoute,
+  // resetPasswordRoute,
   indexRoute,
   loginRoute,
-  registerRoute,
-  verifyRoute,
   oauthCallbackRoute,
-  passwordResetRoute,
-  resetPasswordRoute,
   appRoute,
   catchAllRoute,
 ]);

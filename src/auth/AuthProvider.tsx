@@ -7,15 +7,15 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMeApi, loginApi, logoutApi, type User } from "@/api/auth";
+import { getMeApi, logoutApi, type User } from "@/api/auth";
 import { tokenStorage } from "./tokenStorage";
-import type { LoginFormValues } from "@/schemas/auth";
+// import type { LoginFormValues } from "@/schemas/auth";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (values: LoginFormValues) => Promise<void>;
+  // login: (values: LoginFormValues) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => void;
 }
@@ -42,13 +42,13 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setReady(true);
   }, []);
 
-  const login = useCallback(
-    async (values: LoginFormValues) => {
-      await loginApi(values);
-      await refetch();
-    },
-    [refetch],
-  );
+  // const login = useCallback(
+  //   async (values: LoginFormValues) => {
+  //     await loginApi(values);
+  //     await refetch();
+  //   },
+  //   [refetch],
+  // );
 
   const logout = useCallback(async () => {
     await logoutApi();
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         user: user ?? null,
         isAuthenticated: !!user,
         isLoading: tokenStorage.hasTokens() && isLoading,
-        login,
+        // login,
         logout,
         refetchUser: () => refetch(),
       }}
