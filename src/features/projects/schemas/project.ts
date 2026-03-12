@@ -7,6 +7,14 @@ export const createProjectSchema = z.object({
 
 export type CreateProjectValues = z.infer<typeof createProjectSchema>;
 
+export interface Entry {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  projectId: string;
+  content: string;
+}
+
 export interface Project {
   id: string;
   createdAt: string;
@@ -14,4 +22,6 @@ export interface Project {
   userId: string;
   name: string;
   description?: string;
+  lastInteractedAt?: string;
+  entries: Entry[];
 }
