@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
 import { createProjectApi } from "../api/projects";
@@ -9,7 +9,7 @@ import type { CreateProjectValues } from "../schemas/project";
 
 export function useCreateProjectMutation(opts?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: (values: CreateProjectValues) => createProjectApi(values),
@@ -17,7 +17,7 @@ export function useCreateProjectMutation(opts?: { onSuccess?: () => void }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects });
       lastProjectStorage.set(project.id);
       opts?.onSuccess?.();
-      navigate({ to: "/projects/$projectId", params: { projectId: project.id } });
+      router.navigate({ to: `/projects/${project.id}` as string });
     },
     onError: (error) => {
       if (error instanceof ApiError) {
