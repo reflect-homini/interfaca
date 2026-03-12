@@ -10,3 +10,23 @@ export async function createEntryApi(
     body: JSON.stringify({ content }),
   });
 }
+
+export async function updateEntryApi(
+  projectId: string,
+  entryId: string,
+  content: string,
+): Promise<Entry> {
+  return apiRequest<Entry>(`/projects/${projectId}/entries/${entryId}`, {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function deleteEntryApi(
+  projectId: string,
+  entryId: string,
+): Promise<void> {
+  return apiRequest<void>(`/projects/${projectId}/entries/${entryId}`, {
+    method: "DELETE",
+  });
+}

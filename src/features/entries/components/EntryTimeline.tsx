@@ -14,6 +14,7 @@ type TimelineRow =
   | { type: "entry"; entry: Entry; isNew: boolean; key: string };
 
 interface Props {
+  projectId: string;
   entries: Entry[];
   truncated: boolean;
   lastNewId?: string | null;
@@ -71,7 +72,7 @@ function buildTimeline(entries: Entry[], lastNewId?: string | null): TimelineRow
   return rows;
 }
 
-export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
+export function EntryTimeline({ projectId, entries, truncated, lastNewId }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const prevLengthRef = useRef(entries.length);
@@ -161,7 +162,11 @@ export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
                 )}
                 {row.type === "entry" && (
                   <div className="py-1.5">
-                    <EntryItem entry={row.entry} isNew={row.isNew} />
+                    <EntryItem
+                      entry={row.entry}
+                      projectId={projectId}
+                      isNew={row.isNew}
+                    />
                   </div>
                 )}
               </div>

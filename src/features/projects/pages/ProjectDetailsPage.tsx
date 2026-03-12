@@ -75,6 +75,7 @@ export default function ProjectDetailsPage() {
       {/* Timeline or empty state */}
       {hasEntries ? (
         <EntryTimeline
+          projectId={projectId}
           entries={entries}
           truncated={truncated}
           lastNewId={lastNewIdRef.current}
