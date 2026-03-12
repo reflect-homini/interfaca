@@ -8,7 +8,9 @@ export default function ProjectDetailsPage() {
   const { data: project, isLoading } = useProjectQuery(projectId);
 
   useEffect(() => {
-    if (projectId) lastProjectStorage.set(projectId);
+    if (projectId && projectId !== "undefined") {
+      lastProjectStorage.set(projectId);
+    }
   }, [projectId]);
 
   if (isLoading) {
@@ -32,9 +34,13 @@ export default function ProjectDetailsPage() {
   return (
     <div className="p-8 max-w-3xl fade-in">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-display text-foreground">{project.name}</h1>
+        <h1 className="text-3xl font-bold font-display text-foreground">
+          {project.name}
+        </h1>
         {project.description && (
-          <p className="text-muted-foreground leading-relaxed">{project.description}</p>
+          <p className="text-muted-foreground leading-relaxed">
+            {project.description}
+          </p>
         )}
       </div>
 

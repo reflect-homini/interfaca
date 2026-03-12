@@ -17,7 +17,7 @@ export function useCreateProjectMutation(opts?: { onSuccess?: () => void }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects });
       lastProjectStorage.set(project.id);
       opts?.onSuccess?.();
-      router.navigate({ to: `/projects/${project.id}` as string });
+      router.navigate({ to: `/projects/${project.id}` });
     },
     onError: (error) => {
       if (error instanceof ApiError) {

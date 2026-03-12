@@ -13,5 +13,5 @@ export interface Project {
   updatedAt: string;
   userId: string;
   name: string;
-  description: string;
+  description?: string;
 }
