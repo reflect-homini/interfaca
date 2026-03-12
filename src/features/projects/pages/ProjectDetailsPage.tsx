@@ -1,11 +1,20 @@
 import { useParams } from "@tanstack/react-router";
 import { useProjectQuery } from "../hooks/useProjectQuery";
+import { useEntriesQuery } from "@/features/entries/hooks/useEntriesQuery";
+import { useCreateEntryMutation } from "@/features/entries/hooks/useCreateEntryMutation";
+import { EntryTimeline } from "@/features/entries/components/EntryTimeline";
+import { EntryInput } from "@/features/entries/components/EntryInput";
+import { EntryEmptyState } from "@/features/entries/components/EntryEmptyState";
+import { EntrySkeleton } from "@/features/entries/components/EntrySkeleton";
 import { lastProjectStorage } from "@/lib/lastProject";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams({ strict: false }) as { projectId: string };
-  const { data: project, isLoading } = useProjectQuery(projectId);
+  const { data: project, isLoading: projectLoading } = useProjectQuery(projectId);
+  const { data: entriesData, isLoading: entriesLoading } = useEntriesQuery(projectId);
+  const createEntry = useCreateEntryMutation(projectId);
+  const lastNewIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (projectId && projectId !== "undefined") {
@@ -13,12 +22,24 @@ export default function ProjectDetailsPage() {
     }
   }, [projectId]);
 
-  if (isLoading) {
+  const handleSubmit = (content: string) => {
+    createEntry.mutate(content, {
+      onSuccess: (entry) => {
+        lastNewIdRef.current = entry.id;
+      },
+    });
+  };
+
+  if (projectLoading || entriesLoading) {
     return (
-      <div className="p-8 space-y-6 fade-in">
-        <div className="h-8 w-64 skeleton-shimmer rounded-lg" />
-        <div className="h-4 w-96 skeleton-shimmer rounded" />
-        <div className="h-48 skeleton-shimmer rounded-xl mt-8" />
+      <div className="flex flex-col h-full">
+        <div className="p-4 sm:p-6 border-b border-border shrink-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="h-7 w-48 skeleton-shimmer rounded-lg" />
+            <div className="h-4 w-72 skeleton-shimmer rounded mt-2" />
+          </div>
+        </div>
+        <EntrySkeleton />
       </div>
     );
   }
@@ -31,27 +52,39 @@ export default function ProjectDetailsPage() {
     );
   }
 
+  const entries = entriesData?.entries ?? [];
+  const truncated = entriesData?.truncated ?? false;
+  const hasEntries = entries.length > 0;
+
   return (
-    <div className="p-8 max-w-3xl fade-in">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-display text-foreground">
-          {project.name}
-        </h1>
-        {project.description && (
-          <p className="text-muted-foreground leading-relaxed">
-            {project.description}
-          </p>
-        )}
+    <div className="flex flex-col h-full fade-in">
+      {/* Project header */}
+      <div className="p-4 sm:p-6 border-b border-border shrink-0">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-xl sm:text-2xl font-bold font-display text-foreground truncate">
+            {project.name}
+          </h1>
+          {project.description && (
+            <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+              {project.description}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="mt-10 glass-panel p-8 text-center space-y-4">
-        <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center pulse-glow">
-          <div className="w-5 h-5 rounded-full bg-primary/40" />
-        </div>
-        <p className="text-muted-foreground text-sm">
-          AI-powered reflections and insights will appear here.
-        </p>
-      </div>
+      {/* Timeline or empty state */}
+      {hasEntries ? (
+        <EntryTimeline
+          entries={entries}
+          truncated={truncated}
+          lastNewId={lastNewIdRef.current}
+        />
+      ) : (
+        <EntryEmptyState />
+      )}
+
+      {/* Input */}
+      <EntryInput onSubmit={handleSubmit} isPending={createEntry.isPending} />
     </div>
   );
 }
