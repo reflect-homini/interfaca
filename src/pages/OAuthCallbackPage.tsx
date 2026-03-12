@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { useSearch, useNavigate, Link } from "@tanstack/react-router";
+import {
+  useSearch,
+  useNavigate,
+  Link,
+  useParams,
+} from "@tanstack/react-router";
 import { oauthCallbackApi } from "@/api/auth";
 import { useAuth } from "@/auth/AuthProvider";
 import { ProcessingSkeleton } from "@/components/AuthSkeleton";
@@ -11,16 +16,21 @@ export default function OAuthCallbackPage() {
     state?: string;
   };
 
+  const { provider } = useParams({ strict: false }) as { provider?: string };
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!provider) {
+      setError("Missing OAuth provider");
+      return;
+    }
     if (!code || !state) {
       setError("Missing OAuth parameters");
       return;
     }
-    oauthCallbackApi("google", code, state)
+    oauthCallbackApi(provider, code, state)
       .then(() => {
         refetchUser();
         navigate({ to: "/app" });
@@ -28,7 +38,7 @@ export default function OAuthCallbackPage() {
       .catch((err) => {
         setError(err?.message || "OAuth authentication failed");
       });
-  }, [code, state, navigate, refetchUser]);
+  }, [provider, code, state, navigate, refetchUser]);
 
   if (error) {
     return (
