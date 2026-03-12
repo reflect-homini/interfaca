@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
-import { useSearch, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  useSearch,
+  useNavigate,
+  Link,
+  useParams,
+} from "@tanstack/react-router";
 import { oauthCallbackApi } from "@/api/auth";
 import { useAuth } from "@/auth/AuthProvider";
 import { ProcessingSkeleton } from "@/components/AuthSkeleton";
@@ -11,24 +16,60 @@ export default function OAuthCallbackPage() {
     state?: string;
   };
 
+  const { provider } = useParams({ strict: false }) as { provider?: string };
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
+  const callbackRequestRef = useRef<{
+    key: string;
+    promise: Promise<unknown>;
+  } | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!provider) {
+      setError("Missing OAuth provider");
+      return;
+    }
     if (!code || !state) {
       setError("Missing OAuth parameters");
       return;
     }
-    oauthCallbackApi("google", code, state)
+
+    const callbackKey = `${provider}:${code}:${state}`;
+    const request =
+      callbackRequestRef.current?.key === callbackKey
+        ? callbackRequestRef.current.promise
+        : (() => {
+            const promise = oauthCallbackApi(provider, code, state).finally(
+              () => {
+                if (callbackRequestRef.current?.key === callbackKey) {
+                  callbackRequestRef.current = null;
+                }
+              },
+            );
+            callbackRequestRef.current = { key: callbackKey, promise };
+            return promise;
+          })();
+
+    let active = true;
+    setError("");
+
+    request
       .then(() => {
+        if (!active) return;
         refetchUser();
         navigate({ to: "/app" });
       })
       .catch((err) => {
-        setError(err?.message || "OAuth authentication failed");
+        if (active) {
+          setError(err?.message || "OAuth authentication failed");
+        }
       });
-  }, [code, state, navigate, refetchUser]);
+
+    return () => {
+      active = false;
+    };
+  }, [provider, code, state, navigate, refetchUser]);
 
   if (error) {
     return (
