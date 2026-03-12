@@ -1,10 +1,11 @@
 import { tokenStorage } from "@/auth/tokenStorage";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 export interface ApiResponse<T = unknown> {
   data?: T;
-  errors?: Array<{ message: string; code: number }>;
+  errors?: Array<{ detail: string; code: string }>;
   pagination?: {
     totalData: number;
     currentPage: number;
@@ -39,11 +40,12 @@ async function refreshTokens(): Promise<void> {
     body: JSON.stringify({ refreshToken }),
   });
 
-  const json: ApiResponse<{ token: string; refreshToken: string }> = await res.json();
+  const json: ApiResponse<{ token: string; refreshToken: string }> =
+    await res.json();
 
   if (!res.ok || json.errors?.length) {
     tokenStorage.clearTokens();
-    throw new ApiError(json.errors?.[0]?.message || "Token refresh failed", 401);
+    throw new ApiError(json.errors?.[0]?.detail || "Token refresh failed", 401);
   }
 
   if (json.data) {
@@ -65,7 +67,7 @@ async function handleTokenRefresh(): Promise<void> {
 
 export async function apiRequest<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const makeRequest = async (): Promise<T> => {
     const headers: Record<string, string> = {
@@ -90,7 +92,11 @@ export async function apiRequest<T>(
     const json: ApiResponse<T> = await res.json();
 
     if (json.errors?.length) {
-      throw new ApiError(json.errors[0].message, json.errors[0].code);
+      throw new ApiError(
+        json.errors[0].detail ||
+          "Unexpected error occurred, please try again later",
+        res.status,
+      );
     }
 
     if (!res.ok) {
@@ -103,13 +109,17 @@ export async function apiRequest<T>(
   try {
     return await makeRequest();
   } catch (error) {
-    if (error instanceof ApiError && error.code === 401 && tokenStorage.getRefreshToken()) {
+    if (
+      error instanceof ApiError &&
+      error.code === 401 &&
+      tokenStorage.getRefreshToken()
+    ) {
       try {
         await handleTokenRefresh();
         return await makeRequest();
       } catch {
         tokenStorage.clearTokens();
-        window.location.href = "/login";
+        globalThis.location.href = "/login";
         throw error;
       }
     }

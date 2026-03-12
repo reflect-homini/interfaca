@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
 import { tokenStorage } from "@/auth/tokenStorage";
-import type { LoginFormValues, RegisterFormValues, ResetPasswordValues } from "@/schemas/auth";
+// import type { LoginFormValues, RegisterFormValues, ResetPasswordValues } from "@/schemas/auth";
 
 export interface AuthTokens {
   type: string;
@@ -25,41 +25,41 @@ export interface User {
   profile: UserProfile;
 }
 
-export async function loginApi(values: LoginFormValues): Promise<AuthTokens> {
-  const data = await apiRequest<AuthTokens>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify(values),
-  });
-  tokenStorage.setTokens(data.token, data.refreshToken);
-  return data;
-}
+// export async function loginApi(values: LoginFormValues): Promise<AuthTokens> {
+//   const data = await apiRequest<AuthTokens>("/auth/login", {
+//     method: "POST",
+//     body: JSON.stringify(values),
+//   });
+//   tokenStorage.setTokens(data.token, data.refreshToken);
+//   return data;
+// }
 
-export async function registerApi(values: RegisterFormValues): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>("/auth/register", {
-    method: "POST",
-    body: JSON.stringify(values),
-  });
-}
+// export async function registerApi(values: RegisterFormValues): Promise<{ message: string }> {
+//   return apiRequest<{ message: string }>("/auth/register", {
+//     method: "POST",
+//     body: JSON.stringify(values),
+//   });
+// }
 
-export async function verifyRegistrationApi(token: string): Promise<void> {
-  await apiRequest<void>(`/auth/verify-registration?token=${encodeURIComponent(token)}`, {
-    method: "GET",
-  });
-}
+// export async function verifyRegistrationApi(token: string): Promise<void> {
+//   await apiRequest<void>(`/auth/verify-registration?token=${encodeURIComponent(token)}`, {
+//     method: "GET",
+//   });
+// }
 
-export async function sendPasswordResetApi(email: string): Promise<void> {
-  await apiRequest<void>("/auth/password-reset", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
-}
+// export async function sendPasswordResetApi(email: string): Promise<void> {
+//   await apiRequest<void>("/auth/password-reset", {
+//     method: "POST",
+//     body: JSON.stringify({ email }),
+//   });
+// }
 
-export async function resetPasswordApi(values: ResetPasswordValues & { token: string }): Promise<void> {
-  await apiRequest<void>("/auth/reset-password", {
-    method: "PATCH",
-    body: JSON.stringify(values),
-  });
-}
+// export async function resetPasswordApi(values: ResetPasswordValues & { token: string }): Promise<void> {
+//   await apiRequest<void>("/auth/reset-password", {
+//     method: "PATCH",
+//     body: JSON.stringify(values),
+//   });
+// }
 
 export async function logoutApi(): Promise<void> {
   try {
@@ -81,10 +81,10 @@ export function getOAuthUrl(provider: string): string {
 export async function oauthCallbackApi(
   provider: string,
   code: string,
-  state: string
+  state: string,
 ): Promise<AuthTokens> {
   const data = await apiRequest<AuthTokens>(
-    `/auth/${provider}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`
+    `/auth/${provider}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
   );
   tokenStorage.setTokens(data.token, data.refreshToken);
   return data;
