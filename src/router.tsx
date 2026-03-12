@@ -14,16 +14,14 @@ import { tokenStorage } from "@/auth/tokenStorage";
 import { AuthSkeleton, ProcessingSkeleton } from "@/components/AuthSkeleton";
 import { Analytics } from "@vercel/analytics/react";
 
-// const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
-// const VerifyRegistrationPage = lazy(
-//   () => import("@/pages/VerifyRegistrationPage"),
-// );
-// const PasswordResetPage = lazy(() => import("@/pages/PasswordResetPage"));
-// const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const OAuthCallbackPage = lazy(() => import("@/pages/OAuthCallbackPage"));
 const AppPage = lazy(() => import("@/pages/AppPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const ProjectsLayout = lazy(() => import("@/features/projects/pages/ProjectsLayout"));
+const ProjectDetailsPage = lazy(() => import("@/features/projects/pages/ProjectDetailsPage"));
+
+const queryClient = new QueryClient();
 
 // Root route
 const rootRoute = createRootRoute({
@@ -40,7 +38,7 @@ const rootRoute = createRootRoute({
   ),
 });
 
-// Auth guard helper
+// Auth guard helpers
 function requireAuth() {
   if (!tokenStorage.hasTokens()) {
     throw redirect({ to: "/login" });
@@ -65,27 +63,6 @@ const loginRoute = createRoute({
   ),
 });
 
-// const registerRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "/register",
-//   beforeLoad: requireGuest,
-//   component: () => (
-//     <Suspense fallback={<AuthSkeleton />}>
-//       <RegisterPage />
-//     </Suspense>
-//   ),
-// });
-
-// const verifyRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "/verify-registration",
-//   component: () => (
-//     <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
-//       <VerifyRegistrationPage />
-//     </Suspense>
-//   ),
-// });
-
 const oauthCallbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/$provider/callback",
@@ -96,26 +73,6 @@ const oauthCallbackRoute = createRoute({
   ),
 });
 
-// const passwordResetRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "/password-reset",
-//   component: () => (
-//     <Suspense fallback={<AuthSkeleton />}>
-//       <PasswordResetPage />
-//     </Suspense>
-//   ),
-// });
-
-// const resetPasswordRoute = createRoute({
-//   getParentRoute: () => rootRoute,
-//   path: "/reset-password",
-//   component: () => (
-//     <Suspense fallback={<AuthSkeleton />}>
-//       <ResetPasswordPage />
-//     </Suspense>
-//   ),
-// });
-
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/app",
@@ -123,6 +80,27 @@ const appRoute = createRoute({
   component: () => (
     <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
       <AppPage />
+    </Suspense>
+  ),
+});
+
+const projectsLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/projects",
+  beforeLoad: requireAuth,
+  component: () => (
+    <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
+      <ProjectsLayout />
+    </Suspense>
+  ),
+});
+
+const projectDetailRoute = createRoute({
+  getParentRoute: () => projectsLayoutRoute,
+  path: "/$projectId",
+  component: () => (
+    <Suspense fallback={<ProcessingSkeleton message="Loading" />}>
+      <ProjectDetailsPage />
     </Suspense>
   ),
 });
@@ -146,18 +124,13 @@ const catchAllRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  // registerRoute,
-  // verifyRoute,
-  // passwordResetRoute,
-  // resetPasswordRoute,
   indexRoute,
   loginRoute,
   oauthCallbackRoute,
   appRoute,
+  projectsLayoutRoute.addChildren([projectDetailRoute]),
   catchAllRoute,
 ]);
-
-const queryClient = new QueryClient();
 
 export const router = createRouter({ routeTree });
 
