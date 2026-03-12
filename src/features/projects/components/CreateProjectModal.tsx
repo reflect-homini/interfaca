@@ -1,4 +1,3 @@
-import { useState, useCallback } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import {
@@ -16,11 +15,10 @@ interface CreateProjectModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalProps) {
-  const mutation = useCreateProjectMutation({
-    onSuccess: () => onOpenChange(false),
-  });
-
+export function CreateProjectModal({
+  open,
+  onOpenChange,
+}: CreateProjectModalProps) {
   const form = useForm({
     defaultValues: { name: "", description: "" },
     onSubmit: async ({ value }) => {
@@ -33,11 +31,20 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
     },
   });
 
+  const mutation = useCreateProjectMutation({
+    onSuccess: () => {
+      form.reset();
+      onOpenChange(false);
+    },
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-panel border-border/50 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-foreground">New Project</DialogTitle>
+          <DialogTitle className="font-display text-foreground">
+            New Project
+          </DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Create a new project to organize your reflections.
           </DialogDescription>
@@ -54,7 +61,10 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
           <form.Field name="name">
             {(field) => (
               <div className="space-y-1.5">
-                <label htmlFor="project-name" className="text-sm font-medium text-foreground">
+                <label
+                  htmlFor="project-name"
+                  className="text-sm font-medium text-foreground"
+                >
                   Project Name
                 </label>
                 <input
@@ -73,8 +83,12 @@ export function CreateProjectModal({ open, onOpenChange }: CreateProjectModalPro
           <form.Field name="description">
             {(field) => (
               <div className="space-y-1.5">
-                <label htmlFor="project-desc" className="text-sm font-medium text-foreground">
-                  Description <span className="text-muted-foreground">(optional)</span>
+                <label
+                  htmlFor="project-desc"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Description{" "}
+                  <span className="text-muted-foreground">(optional)</span>
                 </label>
                 <textarea
                   id="project-desc"
