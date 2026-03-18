@@ -33,18 +33,22 @@ export function SummaryEntriesModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="font-display">Summarized Entries</DialogTitle>
-          <DialogDescription>
-            {entriesCount} {entriesCount === 1 ? "reflection" : "reflections"}{" "}
-            included in this summary
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col gap-0 p-0 overflow-hidden">
+        <div className="p-6 pb-4 border-b">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Summarized Entries
+            </DialogTitle>
+            <DialogDescription>
+              {entriesCount} {entriesCount === 1 ? "reflection" : "reflections"}{" "}
+              included in this summary
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <div className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
           {isLoading && (
-            <div className="space-y-3 py-2">
+            <div className="space-y-3">
               {Array.from({ length: Math.min(entriesCount, 5) }).map((_, i) => (
                 <div
                   key={`skeleton-${i}`}
@@ -72,7 +76,7 @@ export function SummaryEntriesModal({
           )}
 
           {entries && (
-            <div className="space-y-2 py-2">
+            <div className="space-y-3">
               {entries.map((entry) => (
                 <div key={entry.id} className="glass-panel px-4 py-3 fade-in">
                   <div
@@ -97,7 +101,7 @@ export function SummaryEntriesModal({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

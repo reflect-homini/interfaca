@@ -12,16 +12,16 @@ export interface BaseItem {
   createdAt: string;
   updatedAt: string;
   projectId: string;
+  content: string;
 }
 
 export interface Entry extends BaseItem {
   itemType: "entry";
-  content: string;
 }
 
 export interface Summary extends BaseItem {
   itemType: "summary";
-  content: string;
+  additionalContent: string;
   entriesCount: number;
   endEntryId: string;
 }
