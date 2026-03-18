@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 export default function ProjectDetailsPage() {
   const { projectId } = useParams({ strict: false }) as { projectId: string };
   const { data: project, isLoading: projectLoading } = useProjectQuery(projectId);
-  const { data: entriesData, isLoading: entriesLoading } = useEntriesQuery(projectId);
+  const { data: itemsData, isLoading: itemsLoading } = useEntriesQuery(projectId);
   const createEntry = useCreateEntryMutation(projectId);
   const lastNewIdRef = useRef<string | null>(null);
 
@@ -30,7 +30,7 @@ export default function ProjectDetailsPage() {
     });
   };
 
-  if (projectLoading || entriesLoading) {
+  if (projectLoading || itemsLoading) {
     return (
       <div className="flex flex-col h-full">
         <div className="p-4 sm:p-6 border-b border-border shrink-0">
@@ -52,9 +52,9 @@ export default function ProjectDetailsPage() {
     );
   }
 
-  const entries = entriesData?.entries ?? [];
-  const truncated = entriesData?.truncated ?? false;
-  const hasEntries = entries.length > 0;
+  const items = itemsData?.items ?? [];
+  const truncated = itemsData?.truncated ?? false;
+  const hasItems = items.length > 0;
 
   return (
     <div className="flex flex-col h-full fade-in">
@@ -73,10 +73,10 @@ export default function ProjectDetailsPage() {
       </div>
 
       {/* Timeline or empty state */}
-      {hasEntries ? (
+      {hasItems ? (
         <EntryTimeline
           projectId={projectId}
-          entries={entries}
+          items={items}
           truncated={truncated}
           lastNewId={lastNewIdRef.current}
         />

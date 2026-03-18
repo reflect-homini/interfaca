@@ -1,8 +1,9 @@
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { differenceInMinutes, parseISO, startOfDay } from "date-fns";
-import type { Entry } from "@/features/projects/schemas/project";
+import type { ProjectItem } from "@/features/projects/schemas/project";
 import { EntryItem } from "./EntryItem";
+import { SummaryItem } from "./SummaryItem";
 import { EntryTimestamp } from "./EntryTimestamp";
 import { EntryDaySeparator } from "./EntryDaySeparator";
 
@@ -11,58 +12,66 @@ const TIMESTAMP_GAP_MINUTES = 10;
 type TimelineRow =
   | { type: "day-separator"; date: Date; key: string }
   | { type: "timestamp"; date: Date; key: string }
-  | { type: "entry"; entry: Entry; isNew: boolean; key: string };
+  | { type: "entry"; item: ProjectItem & { itemType: "entry" }; isNew: boolean; key: string }
+  | { type: "summary"; item: ProjectItem & { itemType: "summary" }; isNew: boolean; key: string };
 
 interface Props {
   projectId: string;
-  entries: Entry[];
+  items: ProjectItem[];
   truncated: boolean;
   lastNewId?: string | null;
 }
 
-function buildTimeline(entries: Entry[], lastNewId?: string | null): TimelineRow[] {
+function buildTimeline(items: ProjectItem[], lastNewId?: string | null): TimelineRow[] {
   const rows: TimelineRow[] = [];
   let prevDate: Date | null = null;
 
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const date = parseISO(entry.createdAt);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const date = parseISO(item.createdAt);
     const prevDay = prevDate ? startOfDay(prevDate) : null;
     const curDay = startOfDay(date);
 
     // Day separator
     if (!prevDay || curDay.getTime() !== prevDay.getTime()) {
-      rows.push({ type: "day-separator", date: curDay, key: `day-${entry.id}` });
+      rows.push({ type: "day-separator", date: curDay, key: `day-${item.id}` });
     }
 
-    // Timestamp grouping: show if first, different day, or >10min gap
+    // Timestamp grouping
     const showTimestamp =
       i === 0 ||
       !prevDate ||
       curDay.getTime() !== prevDay?.getTime() ||
       Math.abs(differenceInMinutes(date, prevDate)) >= TIMESTAMP_GAP_MINUTES;
 
-    rows.push({
-      type: "entry",
-      entry,
-      isNew: entry.id === lastNewId,
-      key: `entry-${entry.id}`,
-    });
+    if (item.itemType === "entry") {
+      rows.push({
+        type: "entry",
+        item,
+        isNew: item.id === lastNewId,
+        key: `entry-${item.id}`,
+      });
+    } else {
+      rows.push({
+        type: "summary",
+        item,
+        isNew: item.id === lastNewId,
+        key: `summary-${item.id}`,
+      });
+    }
 
-    // Timestamp appears below the entry (before the next entry or at end of group)
-    const nextEntry = entries[i + 1];
+    // Timestamp below
+    const nextItem = items[i + 1];
     if (showTimestamp) {
-      // Show timestamp below current entry if it's the start of a new time group
-      if (nextEntry) {
-        const nextDate = parseISO(nextEntry.createdAt);
+      if (nextItem) {
+        const nextDate = parseISO(nextItem.createdAt);
         const nextDay = startOfDay(nextDate);
         const gapToNext = Math.abs(differenceInMinutes(nextDate, date));
         if (nextDay.getTime() !== curDay.getTime() || gapToNext >= TIMESTAMP_GAP_MINUTES) {
-          rows.push({ type: "timestamp", date, key: `ts-${entry.id}` });
+          rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
         }
       } else {
-        // Last entry always shows timestamp
-        rows.push({ type: "timestamp", date, key: `ts-${entry.id}` });
+        rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
       }
     }
 
@@ -72,12 +81,12 @@ function buildTimeline(entries: Entry[], lastNewId?: string | null): TimelineRow
   return rows;
 }
 
-export function EntryTimeline({ projectId, entries, truncated, lastNewId }: Props) {
+export function EntryTimeline({ projectId, items, truncated, lastNewId }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
-  const prevLengthRef = useRef(entries.length);
+  const prevLengthRef = useRef(items.length);
 
-  const rows = useMemo(() => buildTimeline(entries, lastNewId), [entries, lastNewId]);
+  const rows = useMemo(() => buildTimeline(items, lastNewId), [items, lastNewId]);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -86,6 +95,7 @@ export function EntryTimeline({ projectId, entries, truncated, lastNewId }: Prop
       const row = rows[index];
       if (row.type === "day-separator") return 40;
       if (row.type === "timestamp") return 28;
+      if (row.type === "summary") return 120;
       return 80;
     },
     overscan: 10,
@@ -97,17 +107,17 @@ export function EntryTimeline({ projectId, entries, truncated, lastNewId }: Prop
       virtualizer.scrollToIndex(rows.length - 1, { align: "end" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows.length === 0]); // only on first load
+  }, [rows.length === 0]);
 
-  // Scroll to bottom when new entries added and user was at bottom
+  // Scroll to bottom when new items added and user was at bottom
   useEffect(() => {
-    if (entries.length > prevLengthRef.current && isAtBottomRef.current) {
+    if (items.length > prevLengthRef.current && isAtBottomRef.current) {
       requestAnimationFrame(() => {
         virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
       });
     }
-    prevLengthRef.current = entries.length;
-  }, [entries.length, rows.length, virtualizer]);
+    prevLengthRef.current = items.length;
+  }, [items.length, rows.length, virtualizer]);
 
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
@@ -161,9 +171,20 @@ export function EntryTimeline({ projectId, entries, truncated, lastNewId }: Prop
                   <EntryTimestamp date={row.date} />
                 )}
                 {row.type === "entry" && (
+                  <div className="py-1.5 flex justify-end">
+                    <div className="max-w-[85%]">
+                      <EntryItem
+                        entry={row.item}
+                        projectId={projectId}
+                        isNew={row.isNew}
+                      />
+                    </div>
+                  </div>
+                )}
+                {row.type === "summary" && (
                   <div className="py-1.5">
-                    <EntryItem
-                      entry={row.entry}
+                    <SummaryItem
+                      summary={row.item}
                       projectId={projectId}
                       isNew={row.isNew}
                     />
