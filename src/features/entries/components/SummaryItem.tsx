@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sparkles, ChevronRight } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import type { Summary } from "@/features/projects/schemas/project";
 import { SummaryEntriesModal } from "./SummaryEntriesModal";
@@ -29,8 +30,8 @@ export function SummaryItem({ summary, projectId, isNew }: Props) {
             AI Insight
           </span>
           <div className="glass-panel px-4 py-3 border-secondary/20 bg-secondary/5">
-            <div className="text-foreground text-sm leading-relaxed whitespace-pre-wrap break-words prose prose-invert prose-sm max-w-none">
-              {summary.content}
+            <div className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-a:text-primary">
+              <ReactMarkdown>{summary.content}</ReactMarkdown>
             </div>
 
             {summary.entriesCount > 0 && (

@@ -8,6 +8,7 @@ import {
 import { useSummaryEntriesQuery } from "../hooks/useSummaryEntriesQuery";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, parseISO } from "date-fns";
+import ReactMarkdown from "react-markdown";
 
 interface Props {
   open: boolean;
@@ -75,9 +76,9 @@ export function SummaryEntriesModal({
                   key={entry.id}
                   className="glass-panel px-4 py-3 fade-in"
                 >
-                  <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap break-words">
-                    {entry.content}
-                  </p>
+                  <div className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                    <ReactMarkdown>{entry.content}</ReactMarkdown>
+                  </div>
                   <span className="text-[10px] text-muted-foreground/60 mt-2 inline-block">
                     {format(parseISO(entry.createdAt), "MMM d, h:mm a")}
                   </span>
