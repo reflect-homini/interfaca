@@ -6,7 +6,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useSummaryEntriesQuery } from "../hooks/useSummaryEntriesQuery";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, parseISO } from "date-fns";
 import ReactMarkdown from "react-markdown";
 
