@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { parseISO } from "date-fns";
+import ReactMarkdown from "react-markdown";
 import type { Entry } from "@/features/projects/schemas/project";
 import { EntryActionsMenu } from "./EntryActionsMenu";
 import { EntryEditForm } from "./EntryEditForm";
