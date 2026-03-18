@@ -30,16 +30,28 @@ export function SummaryItem({ summary, projectId, isNew }: Props) {
             AI Insight
           </span>
           <div className="glass-panel px-4 py-3 border-secondary/20 bg-secondary/5">
-            <div className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-a:text-primary">
+            <div
+              className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none 
+              dark:prose-invert
+              prose-headings:font-display prose-headings:font-semibold prose-headings:text-foreground
+              prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+              prose-p:text-foreground prose-p:my-1.5
+              prose-ul:list-disc prose-ul:pl-4 prose-ul:my-2
+              prose-ol:list-decimal prose-ol:pl-4 prose-ol:my-2
+              prose-li:text-foreground prose-li:my-0.5
+              prose-code:text-secondary prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-muted/30 prose-pre:border prose-pre:border-border prose-pre:text-foreground
+              prose-strong:text-foreground prose-a:text-primary"
+            >
               <ReactMarkdown>{summary.content}</ReactMarkdown>
             </div>
 
             {summary.entriesCount > 0 && (
               <Button
-                variant="ghost"
+                variant="tertiary"
                 size="sm"
                 onClick={() => setModalOpen(true)}
-                className="mt-3 h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                className="mt-3 h-7 px-2 text-xs gap-1"
               >
                 Show {summary.entriesCount}{" "}
                 {summary.entriesCount === 1 ? "entry" : "entries"}

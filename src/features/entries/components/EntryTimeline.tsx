@@ -12,8 +12,18 @@ const TIMESTAMP_GAP_MINUTES = 10;
 type TimelineRow =
   | { type: "day-separator"; date: Date; key: string }
   | { type: "timestamp"; date: Date; key: string }
-  | { type: "entry"; item: ProjectItem & { itemType: "entry" }; isNew: boolean; key: string }
-  | { type: "summary"; item: ProjectItem & { itemType: "summary" }; isNew: boolean; key: string };
+  | {
+      type: "entry";
+      item: ProjectItem & { itemType: "entry" };
+      isNew: boolean;
+      key: string;
+    }
+  | {
+      type: "summary";
+      item: ProjectItem & { itemType: "summary" };
+      isNew: boolean;
+      key: string;
+    };
 
 interface Props {
   projectId: string;
@@ -22,7 +32,10 @@ interface Props {
   lastNewId?: string | null;
 }
 
-function buildTimeline(items: ProjectItem[], lastNewId?: string | null): TimelineRow[] {
+function buildTimeline(
+  items: ProjectItem[],
+  lastNewId?: string | null,
+): TimelineRow[] {
   const rows: TimelineRow[] = [];
   let prevDate: Date | null = null;
 
@@ -67,7 +80,10 @@ function buildTimeline(items: ProjectItem[], lastNewId?: string | null): Timelin
         const nextDate = parseISO(nextItem.createdAt);
         const nextDay = startOfDay(nextDate);
         const gapToNext = Math.abs(differenceInMinutes(nextDate, date));
-        if (nextDay.getTime() !== curDay.getTime() || gapToNext >= TIMESTAMP_GAP_MINUTES) {
+        if (
+          nextDay.getTime() !== curDay.getTime() ||
+          gapToNext >= TIMESTAMP_GAP_MINUTES
+        ) {
           rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
         }
       } else {
@@ -81,12 +97,20 @@ function buildTimeline(items: ProjectItem[], lastNewId?: string | null): Timelin
   return rows;
 }
 
-export function EntryTimeline({ projectId, items, truncated, lastNewId }: Props) {
+export function EntryTimeline({
+  projectId,
+  items,
+  truncated,
+  lastNewId,
+}: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const prevLengthRef = useRef(items.length);
 
-  const rows = useMemo(() => buildTimeline(items, lastNewId), [items, lastNewId]);
+  const rows = useMemo(
+    () => buildTimeline(items, lastNewId),
+    [items, lastNewId],
+  );
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -113,7 +137,10 @@ export function EntryTimeline({ projectId, items, truncated, lastNewId }: Props)
   useEffect(() => {
     if (items.length > prevLengthRef.current && isAtBottomRef.current) {
       requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
+        virtualizer.scrollToIndex(rows.length - 1, {
+          align: "end",
+          behavior: "smooth",
+        });
       });
     }
     prevLengthRef.current = items.length;
@@ -167,17 +194,11 @@ export function EntryTimeline({ projectId, items, truncated, lastNewId }: Props)
                 {row.type === "day-separator" && (
                   <EntryDaySeparator date={row.date} />
                 )}
-                {row.type === "timestamp" && (
-                  <EntryTimestamp date={row.date} />
-                )}
+                {row.type === "timestamp" && <EntryTimestamp date={row.date} />}
                 {row.type === "entry" && (
                   <div className="py-1.5 flex justify-end">
                     <div className="max-w-[85%]">
-                      <EntryItem
-                        entry={row.item}
-                        projectId={projectId}
-                        isNew={row.isNew}
-                      />
+                      <EntryItem entry={row.item} isNew={row.isNew} />
                     </div>
                   </div>
                 )}

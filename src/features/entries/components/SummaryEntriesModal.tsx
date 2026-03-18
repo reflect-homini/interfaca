@@ -24,22 +24,21 @@ export function SummaryEntriesModal({
   projectId,
   summaryId,
   entriesCount,
-}: Props) {
-  const { data: entries, isLoading, isError } = useSummaryEntriesQuery(
-    projectId,
-    summaryId,
-    open,
-  );
+}: Readonly<Props>) {
+  const {
+    data: entries,
+    isLoading,
+    isError,
+  } = useSummaryEntriesQuery(projectId, summaryId, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="font-display">
-            Summarized Entries
-          </DialogTitle>
+          <DialogTitle className="font-display">Summarized Entries</DialogTitle>
           <DialogDescription>
-            {entriesCount} {entriesCount === 1 ? "reflection" : "reflections"} included in this summary
+            {entriesCount} {entriesCount === 1 ? "reflection" : "reflections"}{" "}
+            included in this summary
           </DialogDescription>
         </DialogHeader>
 
@@ -47,7 +46,10 @@ export function SummaryEntriesModal({
           {isLoading && (
             <div className="space-y-3 py-2">
               {Array.from({ length: Math.min(entriesCount, 5) }).map((_, i) => (
-                <div key={i} className="glass-panel px-4 py-3 space-y-2">
+                <div
+                  key={`skeleton-${i}`}
+                  className="glass-panel px-4 py-3 space-y-2"
+                >
                   <div
                     className="skeleton-shimmer rounded h-4"
                     style={{ width: `${55 + Math.random() * 35}%` }}
@@ -72,11 +74,20 @@ export function SummaryEntriesModal({
           {entries && (
             <div className="space-y-2 py-2">
               {entries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="glass-panel px-4 py-3 fade-in"
-                >
-                  <div className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-a:text-primary">
+                <div key={entry.id} className="glass-panel px-4 py-3 fade-in">
+                  <div
+                    className="text-foreground text-sm leading-relaxed prose prose-sm max-w-none 
+                    dark:prose-invert
+                    prose-headings:font-display prose-headings:font-semibold prose-headings:text-foreground
+                    prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                    prose-p:text-foreground prose-p:my-1.5
+                    prose-ul:list-disc prose-ul:pl-4 prose-ul:my-2
+                    prose-ol:list-decimal prose-ol:pl-4 prose-ol:my-2
+                    prose-li:text-foreground prose-li:my-0.5
+                    prose-code:text-primary prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+                    prose-pre:bg-muted/30 prose-pre:border prose-pre:border-border prose-pre:text-foreground
+                    prose-strong:text-foreground prose-a:text-primary"
+                  >
                     <ReactMarkdown>{entry.content}</ReactMarkdown>
                   </div>
                   <span className="text-[10px] text-muted-foreground/60 mt-2 inline-block">
