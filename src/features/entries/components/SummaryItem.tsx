@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sparkles, ChevronRight } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import type { Summary } from "@/features/projects/schemas/project";
 import { SummaryEntriesModal } from "./SummaryEntriesModal";
