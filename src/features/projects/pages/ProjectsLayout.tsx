@@ -5,6 +5,7 @@ import { ProjectsSidebar } from "../components/ProjectsSidebar";
 import { CreateProjectModal } from "../components/CreateProjectModal";
 import { CommandPalette } from "../components/CommandPalette";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 export default function ProjectsLayout() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function ProjectsLayout() {
   const openModal = useCallback(() => setModalOpen(true), []);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-dvh bg-background overflow-hidden">
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -25,16 +26,18 @@ export default function ProjectsLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`
-          ${isMobile
-            ? `fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300
-               ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`
-            : "relative w-64 shrink-0"
-          }
-          bg-sidebar border-r border-sidebar-border
-        `}
+        className={cn(
+          "bg-sidebar border-r border-sidebar-border",
+          isMobile
+            ? "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300"
+            : "relative w-64 shrink-0",
+          isMobile && (sidebarOpen ? "translate-x-0" : "-translate-x-full"),
+        )}
       >
-        <ProjectsSidebar onCreateProject={openModal} />
+        <ProjectsSidebar
+          onCreateProject={openModal}
+          onClose={() => setSidebarOpen(false)}
+        />
       </aside>
 
       {/* Main */}
@@ -47,7 +50,11 @@ export default function ProjectsLayout() {
               className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               aria-label="Toggle sidebar"
             >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {sidebarOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           </header>
         )}

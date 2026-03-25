@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { Plus, MoreHorizontal, FolderOpen } from "lucide-react";
 import {
@@ -15,9 +15,13 @@ const MAX_VISIBLE_PROJECTS = 8;
 
 interface ProjectsSidebarProps {
   onCreateProject: () => void;
+  onClose?: () => void;
 }
 
-export function ProjectsSidebar({ onCreateProject }: ProjectsSidebarProps) {
+export function ProjectsSidebar({
+  onCreateProject,
+  onClose,
+}: Readonly<ProjectsSidebarProps>) {
   const { data: projects, isLoading } = useProjectsQuery();
   const params = useParams({ strict: false }) as { projectId?: string };
 
@@ -34,7 +38,11 @@ export function ProjectsSidebar({ onCreateProject }: ProjectsSidebarProps) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-3 py-4 border-b border-border/50">
-        <Link to="/app" className="flex items-center gap-2 px-2">
+        <Link
+          to="/app"
+          onClick={onClose}
+          className="flex items-center gap-2 px-2"
+        >
           <h2 className="text-lg font-bold font-display text-primary tracking-tight">
             Reflect<span className="text-foreground">AI</span>
           </h2>
@@ -65,15 +73,18 @@ export function ProjectsSidebar({ onCreateProject }: ProjectsSidebarProps) {
                 key={project.id}
                 project={project}
                 isActive={params.projectId === project.id}
+                onClose={onClose}
               />
             ))}
 
             {overflowProjects.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm
                                      text-muted-foreground hover:text-foreground hover:bg-muted/50
-                                     transition-colors duration-200">
+                                     transition-colors duration-200"
+                  >
                     <MoreHorizontal className="w-4 h-4" />
                     {overflowProjects.length} more projects
                   </button>
@@ -89,6 +100,7 @@ export function ProjectsSidebar({ onCreateProject }: ProjectsSidebarProps) {
                         to="/projects/$projectId"
                         params={{ projectId: project.id }}
                         className="cursor-pointer"
+                        onClick={onClose}
                       >
                         <FolderOpen className="w-4 h-4 mr-2 text-muted-foreground" />
                         <span className="truncate">{project.name}</span>
@@ -105,19 +117,30 @@ export function ProjectsSidebar({ onCreateProject }: ProjectsSidebarProps) {
   );
 }
 
-function ProjectLink({ project, isActive }: { project: Project; isActive: boolean }) {
+function ProjectLink({
+  project,
+  isActive,
+  onClose,
+}: Readonly<{
+  project: Project;
+  isActive: boolean;
+  onClose?: () => void;
+}>) {
   return (
     <Link
       to="/projects/$projectId"
       params={{ projectId: project.id }}
+      onClick={onClose}
       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200 group
-        ${isActive
-          ? "bg-primary/10 text-primary font-medium"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+        ${
+          isActive
+            ? "bg-primary/10 text-primary font-medium"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         }`}
       role="listitem"
     >
-      <FolderOpen className={`w-4 h-4 shrink-0 transition-colors duration-200
+      <FolderOpen
+        className={`w-4 h-4 shrink-0 transition-colors duration-200
         ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
       />
       <span className="truncate">{project.name}</span>
