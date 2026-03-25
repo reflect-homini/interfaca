@@ -46,7 +46,7 @@ function buildTimeline(
     const curDay = startOfDay(date);
 
     // Day separator
-    if (!prevDay || curDay.getTime() !== prevDay.getTime()) {
+    if (curDay.getTime() !== prevDay?.getTime()) {
       rows.push({ type: "day-separator", date: curDay, key: `day-${item.id}` });
     }
 
@@ -102,7 +102,7 @@ export function EntryTimeline({
   items,
   truncated,
   lastNewId,
-}: Props) {
+}: Readonly<Props>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const prevLengthRef = useRef(items.length);
@@ -197,8 +197,12 @@ export function EntryTimeline({
                 {row.type === "timestamp" && <EntryTimestamp date={row.date} />}
                 {row.type === "entry" && (
                   <div className="py-1.5 flex justify-end">
-                    <div className="max-w-[85%]">
-                      <EntryItem entry={row.item} projectId={projectId} isNew={row.isNew} />
+                    <div className="w-full max-w-[85%]">
+                      <EntryItem
+                        entry={row.item}
+                        projectId={projectId}
+                        isNew={row.isNew}
+                      />
                     </div>
                   </div>
                 )}
