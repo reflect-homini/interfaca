@@ -116,6 +116,7 @@ export function SummaryItem({ summary, projectId, isNew }: Readonly<Props>) {
         onOpenChange={setModalOpen}
         projectId={projectId}
         summaryId={summary.id}
+        endEntryId={summary.endEntryId}
         entriesCount={summary.entriesCount}
       />
     </>

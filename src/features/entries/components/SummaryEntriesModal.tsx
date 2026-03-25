@@ -14,6 +14,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   projectId: string;
   summaryId: string;
+  endEntryId: string;
   entriesCount: number;
 }
 
@@ -22,13 +23,14 @@ export function SummaryEntriesModal({
   onOpenChange,
   projectId,
   summaryId,
+  endEntryId,
   entriesCount,
 }: Readonly<Props>) {
   const {
     data: entries,
     isLoading,
     isError,
-  } = useSummaryEntriesQuery(projectId, summaryId, open);
+  } = useSummaryEntriesQuery(projectId, summaryId, endEntryId, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

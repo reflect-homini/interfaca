@@ -11,11 +11,12 @@ import type { Entry } from "@/features/projects/schemas/project";
 export function useSummaryEntriesQuery(
   projectId: string,
   summaryId: string,
+  endEntryId: string,
   enabled: boolean,
 ) {
   return useQuery<Entry[]>({
     queryKey: queryKeys.summaryEntries(summaryId),
-    queryFn: () => getProjectEntriesApi(projectId),
+    queryFn: () => getProjectEntriesApi(projectId, endEntryId),
     enabled,
     staleTime: Infinity, // Summary entries don't change
   });
