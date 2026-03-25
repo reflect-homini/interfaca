@@ -1,4 +1,11 @@
-import { useRef, useEffect, useMemo, useCallback } from "react";
+import {
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+  useState,
+  useLayoutEffect,
+} from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { differenceInMinutes, parseISO, startOfDay } from "date-fns";
 import type { ProjectItem } from "@/features/projects/schemas/project";
@@ -101,6 +108,26 @@ export function EntryTimeline({
     [items, lastNewId],
   );
 
+  const [bannerHeight, setBannerHeight] = useState(0);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!truncated) {
+      setBannerHeight(0);
+      return;
+    }
+    if (!bannerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setBannerHeight(entry.target.getBoundingClientRect().height);
+      }
+    });
+
+    observer.observe(bannerRef.current);
+    return () => observer.disconnect();
+  }, [truncated]);
+
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
@@ -112,6 +139,7 @@ export function EntryTimeline({
       return 80;
     },
     overscan: 10,
+    scrollMargin: bannerHeight,
   });
 
   // Scroll to bottom on initial load
@@ -150,7 +178,7 @@ export function EntryTimeline({
       className="flex-1 overflow-y-auto"
     >
       {truncated && (
-        <div className="text-center py-3">
+        <div ref={bannerRef} className="text-center py-3">
           <span className="text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
             Showing the most recent reflections
           </span>
@@ -159,7 +187,7 @@ export function EntryTimeline({
 
       <div
         style={{
-          height: `${virtualizer.getTotalSize()}px`,
+          height: `${virtualizer.getTotalSize() - virtualizer.options.scrollMargin}px`,
           width: "100%",
           position: "relative",
         }}
@@ -176,7 +204,7 @@ export function EntryTimeline({
                 top: 0,
                 left: 0,
                 width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
+                transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
               }}
             >
               <div className="max-w-3xl mx-auto px-3 sm:px-4">
