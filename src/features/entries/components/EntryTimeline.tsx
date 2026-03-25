@@ -198,7 +198,7 @@ export function EntryTimeline({
                 {row.type === "entry" && (
                   <div className="py-1.5 flex justify-end">
                     <div className="max-w-[85%]">
-                      <EntryItem entry={row.item} isNew={row.isNew} />
+                      <EntryItem entry={row.item} projectId={projectId} isNew={row.isNew} />
                     </div>
                   </div>
                 )}
