@@ -51,11 +51,13 @@ function buildTimeline(
     }
 
     // Timestamp grouping
+    const nextItem = items[i + 1];
+    const nextDate = nextItem ? parseISO(nextItem.createdAt) : null;
+    const nextDay = nextDate ? startOfDay(nextDate) : null;
+
     const showTimestamp =
-      i === 0 ||
-      !prevDate ||
-      curDay.getTime() !== prevDay?.getTime() ||
-      Math.abs(differenceInMinutes(date, prevDate)) >= TIMESTAMP_GAP_MINUTES;
+      nextDay?.getTime() !== curDay.getTime() ||
+      Math.abs(differenceInMinutes(nextDate!, date)) >= TIMESTAMP_GAP_MINUTES;
 
     if (item.itemType === "entry") {
       rows.push({
@@ -73,22 +75,8 @@ function buildTimeline(
       });
     }
 
-    // Timestamp below
-    const nextItem = items[i + 1];
     if (showTimestamp) {
-      if (nextItem) {
-        const nextDate = parseISO(nextItem.createdAt);
-        const nextDay = startOfDay(nextDate);
-        const gapToNext = Math.abs(differenceInMinutes(nextDate, date));
-        if (
-          nextDay.getTime() !== curDay.getTime() ||
-          gapToNext >= TIMESTAMP_GAP_MINUTES
-        ) {
-          rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
-        }
-      } else {
-        rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
-      }
+      rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
     }
 
     prevDate = date;
@@ -105,7 +93,8 @@ export function EntryTimeline({
 }: Readonly<Props>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
-  const prevLengthRef = useRef(items.length);
+  const lastItemId = items.at(-1)?.id;
+  const prevLastIdRef = useRef(lastItemId);
 
   const rows = useMemo(
     () => buildTimeline(items, lastNewId),
@@ -135,7 +124,7 @@ export function EntryTimeline({
 
   // Scroll to bottom when new items added and user was at bottom
   useEffect(() => {
-    if (items.length > prevLengthRef.current && isAtBottomRef.current) {
+    if (lastItemId !== prevLastIdRef.current && isAtBottomRef.current) {
       requestAnimationFrame(() => {
         virtualizer.scrollToIndex(rows.length - 1, {
           align: "end",
@@ -143,8 +132,8 @@ export function EntryTimeline({
         });
       });
     }
-    prevLengthRef.current = items.length;
-  }, [items.length, rows.length, virtualizer]);
+    prevLastIdRef.current = lastItemId;
+  }, [lastItemId, rows.length, virtualizer]);
 
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
