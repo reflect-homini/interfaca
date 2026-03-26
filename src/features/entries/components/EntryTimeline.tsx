@@ -153,16 +153,32 @@ export function EntryTimeline({
 
   // Scroll to bottom when new items added and user was at bottom
   useEffect(() => {
+    if (rows.length === 0) return;
+
     if (lastItemId !== prevLastIdRef.current) {
+      let rafId: number | undefined;
+
       if (isAtBottomRef.current) {
-        requestAnimationFrame(() => {
-          virtualizer.scrollToIndex(rows.length - 1, {
-            align: "end",
-            behavior: "smooth",
-          });
+        rafId = requestAnimationFrame(() => {
+          if (
+            rows.length > 0 &&
+            lastItemId !== prevLastIdRef.current &&
+            isAtBottomRef.current
+          ) {
+            virtualizer.scrollToIndex(rows.length - 1, {
+              align: "end",
+              behavior: "smooth",
+            });
+          }
         });
       }
       prevLastIdRef.current = lastItemId;
+
+      return () => {
+        if (rafId !== undefined) {
+          cancelAnimationFrame(rafId);
+        }
+      };
     }
   }, [lastItemId, rows.length, virtualizer]);
 
