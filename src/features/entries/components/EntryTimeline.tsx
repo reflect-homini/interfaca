@@ -39,7 +39,7 @@ interface Props {
   lastNewId?: string | null;
 }
 
-function buildTimeline(
+export function buildTimeline(
   items: ProjectItem[],
   lastNewId?: string | null,
 ): TimelineRow[] {
@@ -138,6 +138,7 @@ export function EntryTimeline({
       if (row.type === "summary") return 120;
       return 80;
     },
+    getItemKey: (index) => rows[index].key, // Fix for overlapping and rendering issues
     overscan: 10,
     scrollMargin: bannerHeight,
   });
@@ -148,19 +149,21 @@ export function EntryTimeline({
       virtualizer.scrollToIndex(rows.length - 1, { align: "end" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows.length === 0]);
+  }, []); // Only on mount
 
   // Scroll to bottom when new items added and user was at bottom
   useEffect(() => {
-    if (lastItemId !== prevLastIdRef.current && isAtBottomRef.current) {
-      requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(rows.length - 1, {
-          align: "end",
-          behavior: "smooth",
+    if (lastItemId !== prevLastIdRef.current) {
+      if (isAtBottomRef.current) {
+        requestAnimationFrame(() => {
+          virtualizer.scrollToIndex(rows.length - 1, {
+            align: "end",
+            behavior: "smooth",
+          });
         });
-      });
+      }
+      prevLastIdRef.current = lastItemId;
     }
-    prevLastIdRef.current = lastItemId;
   }, [lastItemId, rows.length, virtualizer]);
 
   const handleScroll = useCallback(() => {
