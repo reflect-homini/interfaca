@@ -14,10 +14,13 @@ export async function createEntryApi(
   projectId: string,
   content: string,
 ): Promise<Entry> {
-  const res = await apiRequest<CreateEntryResponse>(`/projects/${projectId}/entries`, {
-    method: "POST",
-    body: JSON.stringify({ content }),
-  });
+  const res = await apiRequest<CreateEntryResponse>(
+    `/projects/${projectId}/entries`,
+    {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    },
+  );
   return { ...res, itemType: "entry" };
 }
 
@@ -26,10 +29,13 @@ export async function updateEntryApi(
   entryId: string,
   content: string,
 ): Promise<Entry> {
-  const res = await apiRequest<CreateEntryResponse>(`/projects/${projectId}/entries/${entryId}`, {
-    method: "PUT",
-    body: JSON.stringify({ content }),
-  });
+  const res = await apiRequest<CreateEntryResponse>(
+    `/projects/${projectId}/entries/${entryId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ content }),
+    },
+  );
   return { ...res, itemType: "entry" };
 }
 
@@ -48,6 +54,18 @@ export async function getProjectEntriesApi(
   afterEntryId?: string,
 ): Promise<Entry[]> {
   const params = afterEntryId ? `?afterEntryId=${afterEntryId}` : "";
-  const entries = await apiRequest<CreateEntryResponse[]>(`/projects/${projectId}/entries${params}`);
+  const entries = await apiRequest<CreateEntryResponse[]>(
+    `/projects/${projectId}/entries${params}`,
+  );
+  return entries.map((e) => ({ ...e, itemType: "entry" as const }));
+}
+
+export async function getSummaryEntriesApi(
+  projectId: string,
+  summaryId: string,
+): Promise<Entry[]> {
+  const entries = await apiRequest<CreateEntryResponse[]>(
+    `/projects/${projectId}/summaries/${summaryId}/entries`,
+  );
   return entries.map((e) => ({ ...e, itemType: "entry" as const }));
 }

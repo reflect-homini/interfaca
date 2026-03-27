@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { getProjectEntriesApi } from "../api/entries";
+import { getSummaryEntriesApi } from "../api/entries";
 import type { Entry } from "@/features/projects/schemas/project";
 
 /**
@@ -11,12 +11,11 @@ import type { Entry } from "@/features/projects/schemas/project";
 export function useSummaryEntriesQuery(
   projectId: string,
   summaryId: string,
-  endEntryId: string,
   enabled: boolean,
 ) {
   return useQuery<Entry[]>({
     queryKey: queryKeys.summaryEntries(summaryId),
-    queryFn: () => getProjectEntriesApi(projectId, endEntryId),
+    queryFn: () => getSummaryEntriesApi(projectId, summaryId),
     enabled,
     staleTime: Infinity, // Summary entries don't change
   });
