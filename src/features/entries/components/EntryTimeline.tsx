@@ -1,8 +1,16 @@
-import { useRef, useEffect, useMemo, useCallback } from "react";
+import {
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+  useState,
+  useLayoutEffect,
+} from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { differenceInMinutes, parseISO, startOfDay } from "date-fns";
-import type { Entry } from "@/features/projects/schemas/project";
+import type { ProjectItem } from "@/features/projects/schemas/project";
 import { EntryItem } from "./EntryItem";
+import { SummaryItem } from "./SummaryItem";
 import { EntryTimestamp } from "./EntryTimestamp";
 import { EntryDaySeparator } from "./EntryDaySeparator";
 
@@ -11,58 +19,71 @@ const TIMESTAMP_GAP_MINUTES = 10;
 type TimelineRow =
   | { type: "day-separator"; date: Date; key: string }
   | { type: "timestamp"; date: Date; key: string }
-  | { type: "entry"; entry: Entry; isNew: boolean; key: string };
+  | {
+      type: "entry";
+      item: ProjectItem & { itemType: "entry" };
+      isNew: boolean;
+      key: string;
+    }
+  | {
+      type: "summary";
+      item: ProjectItem & { itemType: "summary" };
+      isNew: boolean;
+      key: string;
+    };
 
 interface Props {
-  entries: Entry[];
+  projectId: string;
+  items: ProjectItem[];
   truncated: boolean;
   lastNewId?: string | null;
 }
 
-function buildTimeline(entries: Entry[], lastNewId?: string | null): TimelineRow[] {
+export function buildTimeline(
+  items: ProjectItem[],
+  lastNewId?: string | null,
+): TimelineRow[] {
   const rows: TimelineRow[] = [];
   let prevDate: Date | null = null;
 
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const date = parseISO(entry.createdAt);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const date = parseISO(item.createdAt);
     const prevDay = prevDate ? startOfDay(prevDate) : null;
     const curDay = startOfDay(date);
 
     // Day separator
-    if (!prevDay || curDay.getTime() !== prevDay.getTime()) {
-      rows.push({ type: "day-separator", date: curDay, key: `day-${entry.id}` });
+    if (curDay.getTime() !== prevDay?.getTime()) {
+      rows.push({ type: "day-separator", date: curDay, key: `day-${item.id}` });
     }
 
-    // Timestamp grouping: show if first, different day, or >10min gap
+    // Timestamp grouping
+    const nextItem = items[i + 1];
+    const nextDate = nextItem ? parseISO(nextItem.createdAt) : null;
+    const nextDay = nextDate ? startOfDay(nextDate) : null;
+
     const showTimestamp =
-      i === 0 ||
-      !prevDate ||
-      curDay.getTime() !== prevDay?.getTime() ||
-      Math.abs(differenceInMinutes(date, prevDate)) >= TIMESTAMP_GAP_MINUTES;
+      nextDay?.getTime() !== curDay.getTime() ||
+      Math.abs(differenceInMinutes(nextDate!, date)) >= TIMESTAMP_GAP_MINUTES;
 
-    rows.push({
-      type: "entry",
-      entry,
-      isNew: entry.id === lastNewId,
-      key: `entry-${entry.id}`,
-    });
+    if (item.itemType === "entry") {
+      rows.push({
+        type: "entry",
+        item,
+        isNew: item.id === lastNewId,
+        key: `entry-${item.id}`,
+      });
+    } else {
+      rows.push({
+        type: "summary",
+        item,
+        isNew: item.id === lastNewId,
+        key: `summary-${item.id}`,
+      });
+    }
 
-    // Timestamp appears below the entry (before the next entry or at end of group)
-    const nextEntry = entries[i + 1];
     if (showTimestamp) {
-      // Show timestamp below current entry if it's the start of a new time group
-      if (nextEntry) {
-        const nextDate = parseISO(nextEntry.createdAt);
-        const nextDay = startOfDay(nextDate);
-        const gapToNext = Math.abs(differenceInMinutes(nextDate, date));
-        if (nextDay.getTime() !== curDay.getTime() || gapToNext >= TIMESTAMP_GAP_MINUTES) {
-          rows.push({ type: "timestamp", date, key: `ts-${entry.id}` });
-        }
-      } else {
-        // Last entry always shows timestamp
-        rows.push({ type: "timestamp", date, key: `ts-${entry.id}` });
-      }
+      rows.push({ type: "timestamp", date, key: `ts-${item.id}` });
     }
 
     prevDate = date;
@@ -71,12 +92,41 @@ function buildTimeline(entries: Entry[], lastNewId?: string | null): TimelineRow
   return rows;
 }
 
-export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
+export function EntryTimeline({
+  projectId,
+  items,
+  truncated,
+  lastNewId,
+}: Readonly<Props>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
-  const prevLengthRef = useRef(entries.length);
+  const lastItemId = items.at(-1)?.id;
+  const prevLastIdRef = useRef(lastItemId);
 
-  const rows = useMemo(() => buildTimeline(entries, lastNewId), [entries, lastNewId]);
+  const rows = useMemo(
+    () => buildTimeline(items, lastNewId),
+    [items, lastNewId],
+  );
+
+  const [bannerHeight, setBannerHeight] = useState(0);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!truncated) {
+      setBannerHeight(0);
+      return;
+    }
+    if (!bannerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setBannerHeight(entry.target.getBoundingClientRect().height);
+      }
+    });
+
+    observer.observe(bannerRef.current);
+    return () => observer.disconnect();
+  }, [truncated]);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -85,9 +135,12 @@ export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
       const row = rows[index];
       if (row.type === "day-separator") return 40;
       if (row.type === "timestamp") return 28;
+      if (row.type === "summary") return 120;
       return 80;
     },
+    getItemKey: (index) => rows[index].key, // Fix for overlapping and rendering issues
     overscan: 10,
+    scrollMargin: bannerHeight,
   });
 
   // Scroll to bottom on initial load
@@ -96,17 +149,34 @@ export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
       virtualizer.scrollToIndex(rows.length - 1, { align: "end" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows.length === 0]); // only on first load
+  }, []); // Only on mount
 
-  // Scroll to bottom when new entries added and user was at bottom
+  // Scroll to bottom when new items added and user was at bottom
   useEffect(() => {
-    if (entries.length > prevLengthRef.current && isAtBottomRef.current) {
-      requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
-      });
+    if (rows.length === 0) return;
+
+    if (lastItemId !== prevLastIdRef.current) {
+      let rafId: number | undefined;
+
+      if (isAtBottomRef.current) {
+        rafId = requestAnimationFrame(() => {
+          if (rows.length > 0 && isAtBottomRef.current) {
+            virtualizer.scrollToIndex(rows.length - 1, {
+              align: "end",
+              behavior: "smooth",
+            });
+          }
+        });
+      }
+      prevLastIdRef.current = lastItemId;
+
+      return () => {
+        if (rafId !== undefined) {
+          cancelAnimationFrame(rafId);
+        }
+      };
     }
-    prevLengthRef.current = entries.length;
-  }, [entries.length, rows.length, virtualizer]);
+  }, [lastItemId, rows.length, virtualizer]);
 
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
@@ -123,7 +193,7 @@ export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
       className="flex-1 overflow-y-auto"
     >
       {truncated && (
-        <div className="text-center py-3">
+        <div ref={bannerRef} className="text-center py-3">
           <span className="text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
             Showing the most recent reflections
           </span>
@@ -149,19 +219,32 @@ export function EntryTimeline({ entries, truncated, lastNewId }: Props) {
                 top: 0,
                 left: 0,
                 width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
+                transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
               }}
             >
               <div className="max-w-3xl mx-auto px-3 sm:px-4">
                 {row.type === "day-separator" && (
                   <EntryDaySeparator date={row.date} />
                 )}
-                {row.type === "timestamp" && (
-                  <EntryTimestamp date={row.date} />
-                )}
+                {row.type === "timestamp" && <EntryTimestamp date={row.date} />}
                 {row.type === "entry" && (
+                  <div className="py-1.5 flex justify-end">
+                    <div className="w-full max-w-[85%]">
+                      <EntryItem
+                        entry={row.item}
+                        projectId={projectId}
+                        isNew={row.isNew}
+                      />
+                    </div>
+                  </div>
+                )}
+                {row.type === "summary" && (
                   <div className="py-1.5">
-                    <EntryItem entry={row.entry} isNew={row.isNew} />
+                    <SummaryItem
+                      summary={row.item}
+                      projectId={projectId}
+                      isNew={row.isNew}
+                    />
                   </div>
                 )}
               </div>

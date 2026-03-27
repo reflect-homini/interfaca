@@ -1,0 +1,22 @@
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import { getSummaryEntriesApi } from "../api/entries";
+import type { Entry } from "@/features/projects/schemas/project";
+
+/**
+ * Fetches the entries that a summary covers.
+ * Uses the summary's endEntryId and entriesCount to find relevant entries.
+ * Only fetches when enabled (user clicks "Show entries").
+ */
+export function useSummaryEntriesQuery(
+  projectId: string,
+  summaryId: string,
+  enabled: boolean,
+) {
+  return useQuery<Entry[]>({
+    queryKey: queryKeys.summaryEntries(summaryId),
+    queryFn: () => getSummaryEntriesApi(projectId, summaryId),
+    enabled,
+    staleTime: Infinity, // Summary entries don't change
+  });
+}
