@@ -160,11 +160,7 @@ export function EntryTimeline({
 
       if (isAtBottomRef.current) {
         rafId = requestAnimationFrame(() => {
-          if (
-            rows.length > 0 &&
-            lastItemId !== prevLastIdRef.current &&
-            isAtBottomRef.current
-          ) {
+          if (rows.length > 0 && isAtBottomRef.current) {
             virtualizer.scrollToIndex(rows.length - 1, {
               align: "end",
               behavior: "smooth",
@@ -206,7 +202,7 @@ export function EntryTimeline({
 
       <div
         style={{
-          height: `${virtualizer.getTotalSize() - virtualizer.options.scrollMargin}px`,
+          height: `${virtualizer.getTotalSize()}px`,
           width: "100%",
           position: "relative",
         }}
